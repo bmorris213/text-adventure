@@ -3,17 +3,19 @@
 # Brian Morris
 
 import unittest
+import sys
 from unittest.mock import patch, call
+from io import StringIO
 
 import textmanager
 
 # Test TextManager
 # unit tests for text manager
 class TestTextManager(unittest.TestCase):
-    # ensure prompting user works as intended
-    @patch('builtins.print')
+    # ensure prompting user works as intended)
+    @patch('sys.stdout', new_callable=StringIO)
     @patch('textmanager.time.sleep', return_value=None)
-    def test_display_text(self, mock_sleep, mock_print):
+    def test_display_text(self, mock_sleep, mock_stdout):
         test_string = "Testing1...\nTesting2...\nTesting3..."
         test_values = [ 0, textmanager.QUICK_TEXT, textmanager.NORMAL_TEXT, textmanager.SLOW_TEXT, 500 ]
 
@@ -21,9 +23,10 @@ class TestTextManager(unittest.TestCase):
             textmanager.display_text(test_string, test_values[i])
         
         # ensure correct breaking up of prints in print with 0 delay
-        mock_print.assert_any_call(f"{textmanager.TERMINAL_TAG}Testing1...")
-        mock_print.assert_any_call(f"{textmanager.TERMINAL_TAG}Testing2...")
-        mock_print.assert_any_call(f"{textmanager.TERMINAL_TAG}Testing3...")
+        expected_output = mock_stdout.getvalue()
+        self.assertTrue(f"{textmanager.TERMINAL_TAG}Testing1..." in expected_output)
+        self.assertTrue(f"{textmanager.TERMINAL_TAG}Testing2..." in expected_output)
+        self.assertTrue(f"{textmanager.TERMINAL_TAG}Testing3..." in expected_output)
 
         # ensure delays have been called with the correct values
         expected_calls = []

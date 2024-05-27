@@ -33,7 +33,7 @@ def display_text(text, text_speed=0):
 
     # print start of new terminal line
     if text_speed != 0:
-        print(TERMINAL_TAG, end='')
+        print(TERMINAL_TAG, end='', file=sys.stdout)
     
     if text_speed > MAX_DELAY:
         text_speed = MAX_DELAY
@@ -41,17 +41,17 @@ def display_text(text, text_speed=0):
     for line in text_lines:
         # print instantaneously with speed == 0
         if text_speed == 0:
-            print(f"{TERMINAL_TAG}{line}")
+            print(f"{TERMINAL_TAG}{line}", file=sys.stdout)
         else:
             # delay between print operations
             for letter in line:
                 time.sleep(text_speed / 5)
-                print(letter, end='', flush=True)
+                print(letter, end='', flush=True, file=sys.stdout)
             # end line
             time.sleep(text_speed * 5)
-            print('', end='\n', flush=True)
+            print('', end='\n', flush=True, file=sys.stdout)
             if line != text_lines[len(text_lines) - 1]:
-                print(TERMINAL_TAG, end='', flush=True)
+                print(TERMINAL_TAG, end='', flush=True, file=sys.stdout)
 
 # Get Input
 # ensures user input is of valid type: words with characters a-z seperated by spaces
