@@ -5,7 +5,6 @@
 # Game Manager
 # Stores and Mutates all game states
 # Handles all program delegation
-
 class GameManager():
     # initialize game environment
     def __init__(self):

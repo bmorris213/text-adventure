@@ -12,7 +12,7 @@ from datetime import datetime
 class ErrorManager():
     # instances of error manager store logged errors
     def __init__(self):
-        self.log = []
+        self.__log = []
     
     # store a thrown exception to be reported later
     # takes an exception-type report
@@ -38,11 +38,11 @@ class ErrorManager():
         error_type = type(exception_reported).__name__
 
         # create log
-        error_report = f"ERROR\nfrom source {source} at time {current_time}."
-        error_report += f"\nReported as {error_type}: {str(exception_reported)}.\n"
+        error_report = f"ERROR\nfrom source {source} at time {current_time}.\n"
+        error_report += f"Reported as {error_type}: {str(exception_reported)}.\n"
 
         # store error
-        self.log += error_report
+        self.__log.append(error_report)
     
     # gracefully handle a fatal error and exit the program
     def close_program(self):
@@ -57,6 +57,10 @@ class ErrorManager():
 
     # view all current errors with stderr
     def inspect_errors(self):
+        # ensure log is a list
+        if isinstance(self.__log, str):
+            self.__log = [self.__log]
+        
         # send all errors in log to sderr
-        for error_report in self.log:
+        for error_report in self.__log:
             print(error_report, file=sys.stderr)

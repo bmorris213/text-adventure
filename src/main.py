@@ -2,12 +2,11 @@
 # 05-27-24
 # Brian Morris
 
+from gamemanager import GameManager
+
 # Main
 # program begins execution here
 # execution is passed to game manager
-
-from gamemanager import GameManager
-
 def main():
     # initialize new game environment
     new_session = GameManager()
