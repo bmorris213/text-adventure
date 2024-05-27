@@ -6,6 +6,8 @@ import sys
 import inspect
 from datetime import datetime
 
+MAX_LOOPS = 255 * 100
+
 # Error Manager
 # stores and logs error reports
 # gracefully handles any crashes
