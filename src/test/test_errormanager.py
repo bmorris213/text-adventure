@@ -7,7 +7,7 @@ import sys
 import os
 from io import StringIO
 
-from errormanager import ErrorManager
+import errormanager
 
 # Test ErrorManager
 # unit tests for error manager
@@ -25,13 +25,13 @@ class TestErrorManager(unittest.TestCase):
 
     # ensure program gracefully exits
     def test_close_program(self):
-        error_log = ErrorManager()
-
         # ensure program attempted close
         with self.assertRaises(SystemExit) as cm:
-            error_log.close_program()
+            errormanager.close_program()
 
             self.assertEqual(cm.exception.code, 1)
+        
+        errormanager.inspect_errors()
 
         # ensure a fatal error was reported
         self.stderr.seek(0)
@@ -40,8 +40,6 @@ class TestErrorManager(unittest.TestCase):
     
     # ensure logs are reported successfully
     def test_report_errors(self):
-        error_log = ErrorManager()
-
         test_values = [ Exception("test1"), ValueError("test2"),
             AssertionError("test3"), IndexError("test4") ]
         
@@ -50,9 +48,9 @@ class TestErrorManager(unittest.TestCase):
             try:
                 raise test_value
             except type(test_value) as e:
-                error_log.log_error(e)
+                errormanager.log_error(e)
 
-        error_log.inspect_errors()
+        result = errormanager.inspect_errors()
         
         # ensure test errors were reported
         for test_value in test_values:
@@ -62,7 +60,7 @@ class TestErrorManager(unittest.TestCase):
 
         # ensure log_error raises correct exception
         try:
-            error_log.log_error("invalid input")
+            errormanager.log_error("invalid input")
         except Exception as e:
             self.assertEqual(str(e), "log-error requires an exception as input")
 
