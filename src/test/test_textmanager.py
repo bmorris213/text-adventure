@@ -47,7 +47,7 @@ class TestTextManager(unittest.TestCase):
     # ensure user input retrieval is handled successfully
     def test_get_input(self):
         test_suite = [ "test", " words with spaces ", "CAPS    WORDS", "something_invalid", "     " ]
-        results = [ "test", "words with spaces", "caps words", None, None ]
+        results = [ ("test", None) , ("words", ["with", "spaces"]), ("caps", ["words"]), (None, None), (None, None) ]
 
         with patch('builtins.input', side_effect=test_suite) as mock_input:
             for i in range(len(test_suite)):

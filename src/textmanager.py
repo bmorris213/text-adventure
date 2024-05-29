@@ -20,6 +20,8 @@ SLOW_TEXT = .3
 NORMAL_TEXT = .15
 QUICK_TEXT = .05
 
+LINE_WIDTH = 6
+
 # Text Manager
 # Performs operations on strings
 # Handles console i/o
@@ -28,8 +30,31 @@ QUICK_TEXT = .05
 # used to communicate information to the user in a common format
 # animated with text_speed
 def display_text(text, text_speed=0):
-    # break up display by newline characters
-    text_lines = text.split('\n')
+    text_lines = None
+    if isinstance(text, list):
+        text_lines = []
+        text_line = ""
+        current_width = 0
+        for i in range(len(text)):
+            text_line += f"{text[i]}, "
+            current_width += 1
+            if current_width >= LINE_WIDTH:
+                current_width = 0
+                text_lines.append(text_line[:-2])
+                text_line = ""
+        if text_line != "" and len(text_line) > 2:
+            text_lines.append(text_line[:-2])
+    elif isinstance(text, dict):
+        # break up display by key : value
+        text_lines = []
+        for key, line in text.items():
+            text_lines.append(f"{key}: {line}")
+    elif isinstance(text, str):
+        # break up display by newline characters
+        text_lines = text.split('\n')
+    else:
+        # text is not string, list, or dict
+        text_lines = [text]
 
     # print start of new terminal line
     if text_speed != 0:
@@ -55,10 +80,10 @@ def display_text(text, text_speed=0):
 
 # Get Input
 # ensures user input is of valid type: words with characters a-z seperated by spaces
-# returns None if invalid values are used
+# returns None, None if invalid values are used, or verb, noun if they are valid
 def get_input():
     # get arg_string from user
-    arg_string = input(f"\n{PLAYER_TAG}", file=sys.stdin)
+    arg_string = input(f"{PLAYER_TAG}")
 
     result = ""
     # skip multiple spaces in a row
@@ -84,8 +109,8 @@ def get_input():
             space_found = True
         else:
             # invalid character returned
-            return None
-        
+            return None, None
+    
     # strip ends of spaces
     if len(result) != 0:
         result = result.lstrip(' ')
@@ -94,10 +119,21 @@ def get_input():
         
     # test for missing result
     if len(result) == 0:
-        return None
+        return None, None
         
     # whatever is left is a clean user input string
-    return result
+    # split based on spaces
+    words = result.split(' ')
+    if len(words) == 0:
+        return None, None
+    
+    # verb is first word, nouns are the other words
+    nouns = None
+    verb = words[0]
+    if len(words) > 1:
+        nouns = words[1:]
+
+    return verb, nouns
 
 # To Lower
 # Safely reduces A-Z to lower case
