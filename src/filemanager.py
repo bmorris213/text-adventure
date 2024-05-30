@@ -1,5 +1,5 @@
 # Text Adventure
-# 05-27-24
+# 05-30-24
 # Brian Morris
 
 import os
@@ -40,7 +40,8 @@ def validate_files():
     # add project source files
     project_files = [ "main.py", "mode.py", "gamemanager.py",
         "errormanager.py", "filemanager.py", "textmanager.py",
-        "worldmanager.py", "partymanager.py", "encountermanager.py" ]
+        "worldmanager.py", "partymanager.py", "encountermanager.py",
+        "displaymanager.py" ]
     for file in project_files:
         files_to_validate.append(os.path.join(PROJECT_ROOT, SOURCE_PATH, file))
 
