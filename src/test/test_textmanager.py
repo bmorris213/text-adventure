@@ -47,7 +47,7 @@ class TestTextManager(unittest.TestCase):
         test_string = []
         # ensure list is 3 x LINE_WIDTH
         for i in range(3):
-            for j in range(textmanager.LINE_WIDTH):
+            for j in range(textmanager.DEFAULT_LINE_WIDTH):
                 test_string.append(f"line width {i}")
         test_string.extend(["test", "values"])
 
@@ -57,7 +57,7 @@ class TestTextManager(unittest.TestCase):
         # result should have 2 x LINE_WIDTH
         for i in range(2):
             line = ""
-            for j in range(textmanager.LINE_WIDTH):
+            for j in range(textmanager.DEFAULT_LINE_WIDTH):
                 line += f"line width {i}, "
                 current_length += 1
             expected_output.append(line)

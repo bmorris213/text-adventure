@@ -20,7 +20,7 @@ SLOW_TEXT = .3
 NORMAL_TEXT = .15
 QUICK_TEXT = .05
 
-LINE_WIDTH = 15
+DEFAULT_LINE_WIDTH = 15
 
 # Text Manager
 # Performs operations on strings
@@ -29,24 +29,24 @@ LINE_WIDTH = 15
 # Display Text
 # used to communicate information to the user in a common format
 # animated with a delay
-def display_text(text, text_delay=0):
+def display_text(text, text_delay=0, line_width=DEFAULT_LINE_WIDTH):
     text_lines = None
     if isinstance(text, list):
         text_lines = []
         new_length = len(text)
         current_index = 0
 
-        # take out all LINE_WIDTH lines
-        while new_length - LINE_WIDTH > LINE_WIDTH:
+        # take out all line_width lines
+        while new_length - line_width > line_width:
             line = ""
-            for i in range(LINE_WIDTH):
+            for i in range(line_width):
                 line += f"{text[current_index + i]}, "
             text_lines.append(line)
-            current_index += LINE_WIDTH
-            new_length -= LINE_WIDTH
+            current_index += line_width
+            new_length -= line_width
         
         # cut the rest in half
-        if new_length % LINE_WIDTH != 0:
+        if new_length % line_width != 0:
             new_length = new_length // 2
             if new_length % 2 != 0:
                 new_length += 1
