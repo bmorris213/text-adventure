@@ -17,8 +17,13 @@ from mode import Mode
 class GameManager():
     # initialize game environment
     def __init__(self):
-        print("Not implemented...")
+        # initialize configuration options
+        self.text_delay = 0
+        
     
     # run a session of game
     def run(self):
-        print("Not implemented...")
+        text_list = [ "item 1", "item 2" ]
+        for i in range(textmanager.LINE_WIDTH * 3):
+            text_list.append(f"item {i + 3}")
+        textmanager.display_text(text_list)

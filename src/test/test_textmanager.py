@@ -43,6 +43,49 @@ class TestTextManager(unittest.TestCase):
         self.assertEqual(mock_sleep.call_count, len(expected_calls))
         mock_sleep.assert_has_calls(expected_calls, any_order=True)
 
+        # test display works with given input of list
+        test_string = []
+        # ensure list is 3 x LINE_WIDTH
+        for i in range(3):
+            for j in range(textmanager.LINE_WIDTH):
+                test_string.append(f"line width {i}")
+        test_string.extend(["test", "values"])
+
+        expected_output = []
+        current_length = 0
+        line = ""
+        # result should have 2 x LINE_WIDTH
+        for i in range(2):
+            line = ""
+            for j in range(textmanager.LINE_WIDTH):
+                line += f"line width {i}, "
+                current_length += 1
+            expected_output.append(line)
+        # add the first half(+1?) of the remainder
+        line = ""
+        new_width = (len(test_string) - current_length) // 2
+        if new_width % 2 != 0:
+            new_width += 1
+        for i in range(new_width + 1):
+            line += f"line width 2, "
+            current_length += 1
+        expected_output.append(line)
+
+        # then add remaining amount
+        current_length += 2 # don't add the last two
+        line = ""
+        for i in range(len(test_string) - current_length):
+            line += f"line width 2, "
+        line += f"test, values"
+        expected_output.append(line)
+
+        # call function, and ensure expected output is present
+        textmanager.display_text(test_string)
+        result = mock_stdout.getvalue()
+        print(result, file=sys.stdout)
+
+        for line in expected_output:
+            self.assertTrue(f"{textmanager.TERMINAL_TAG}{line}" in result)
 
     # ensure user input retrieval is handled successfully
     def test_get_input(self):

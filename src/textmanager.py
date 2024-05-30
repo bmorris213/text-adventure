@@ -20,7 +20,7 @@ SLOW_TEXT = .3
 NORMAL_TEXT = .15
 QUICK_TEXT = .05
 
-LINE_WIDTH = 6
+LINE_WIDTH = 15
 
 # Text Manager
 # Performs operations on strings
@@ -28,22 +28,40 @@ LINE_WIDTH = 6
 
 # Display Text
 # used to communicate information to the user in a common format
-# animated with text_speed
-def display_text(text, text_speed=0):
+# animated with a delay
+def display_text(text, text_delay=0):
     text_lines = None
     if isinstance(text, list):
         text_lines = []
-        text_line = ""
-        current_width = 0
-        for i in range(len(text)):
-            text_line += f"{text[i]}, "
-            current_width += 1
-            if current_width >= LINE_WIDTH:
-                current_width = 0
-                text_lines.append(text_line[:-2])
-                text_line = ""
-        if text_line != "" and len(text_line) > 2:
-            text_lines.append(text_line[:-2])
+        new_length = len(text)
+        current_index = 0
+
+        # take out all LINE_WIDTH lines
+        while new_length - LINE_WIDTH > LINE_WIDTH:
+            line = ""
+            for i in range(LINE_WIDTH):
+                line += f"{text[current_index + i]}, "
+            text_lines.append(line)
+            current_index += LINE_WIDTH
+            new_length -= LINE_WIDTH
+        
+        # cut the rest in half
+        if new_length % LINE_WIDTH != 0:
+            new_length = new_length // 2
+            if new_length % 2 != 0:
+                new_length += 1
+            # take that amount out
+            line = ""
+            for i in range(new_length + 1):
+                line += f"{text[current_index + i]}, "
+            text_lines.append(line)
+            current_index += new_length + 1
+        
+        # add the rest
+        line = ""
+        for i in range(len(text) - current_index):
+            line += f"{text[current_index + i]}, "
+        text_lines.append(line[:-2])
     elif isinstance(text, dict):
         # break up display by key : value
         text_lines = []
@@ -57,23 +75,23 @@ def display_text(text, text_speed=0):
         text_lines = [text]
 
     # print start of new terminal line
-    if text_speed != 0:
+    if text_delay != 0:
         print(TERMINAL_TAG, end='', file=sys.stdout)
     
-    if text_speed > MAX_DELAY:
-        text_speed = MAX_DELAY
+    if text_delay > MAX_DELAY:
+        text_delay = MAX_DELAY
 
     for line in text_lines:
-        # print instantaneously with speed == 0
-        if text_speed == 0:
+        # print instantaneously with delay == 0
+        if text_delay == 0:
             print(f"{TERMINAL_TAG}{line}", file=sys.stdout)
         else:
             # delay between print operations
             for letter in line:
-                time.sleep(text_speed / 5)
+                time.sleep(text_delay / 5)
                 print(letter, end='', flush=True, file=sys.stdout)
             # end line
-            time.sleep(text_speed * 5)
+            time.sleep(text_delay * 5)
             print('', end='\n', flush=True, file=sys.stdout)
             if line != text_lines[len(text_lines) - 1]:
                 print(TERMINAL_TAG, end='', flush=True, file=sys.stdout)
