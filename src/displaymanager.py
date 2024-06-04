@@ -5,6 +5,7 @@
 import sys
 import time
 import tkinter as tk
+from queue import Empty
 
 # Display Manager
 # opens windows to display and run the game
@@ -52,7 +53,7 @@ class Window():
         # establish root behavior
         self.__is_running = False
         self.__root.protocol("WM_DELETE_WINDOW", self.close)
-        self.__root.bind("<Configure>", self._resize)
+        self.__root.bind("<FocusIn>", self.wake)
 
         # content window frame
         self.__main_frame = tk.Frame(self.__root, highlightcolor=self._themes["draw_color"])
@@ -61,9 +62,9 @@ class Window():
             padx=self._border_size, pady=self._border_size)
         
         self.content = []
-    
-    # manual resizing, to resize content as well
-    def _resize(self, event):
+
+    # manual wake
+    def wake(self, event):
         pass
     
     # common way to add any widget to the window
@@ -115,6 +116,9 @@ class Window():
 
     def run(self):
         self.__root.mainloop()
+    
+    def wait(self, miliseconds, funct):
+        self.__root.after(miliseconds, funct)
     
     # action to take if window destruction call is raised
     def close(self):
@@ -183,7 +187,7 @@ class GameWindow(Window):
         "normal_size" : 12 }
     
     # creation of game managing window
-    def __init__(self, input_handler):
+    def __init__(self, input_handler, thread, command_queue):
         # create the basic window
         super().__init__("Text Adventure", .7, .7, self.game_themes)
 
@@ -197,7 +201,8 @@ class GameWindow(Window):
         self.text_frame.pack(fill=tk.BOTH, expand=True, padx=50, pady=(self._border_size, 50))
 
         # add the entry item
-        self._add_widget(tk.Entry, "normal", self.text_frame)
+        self._add_widget(tk.Entry, "normal", self.text_frame,\
+            insertbackground=self.game_themes["text_color"])
         self.entry_bar = self.content[1]
         self.entry_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
@@ -220,6 +225,37 @@ class GameWindow(Window):
         # bind entry behavior
         self.entry_bar.bind("<Return>", self.on_enter)
         self.input_handler = input_handler
+        self.entry_bar.focus_set()
+
+        # wait for call to destroy
+        self.gm_thread = thread
+        self.wait_for_destroy()
+
+        # wait for command to change behavior
+        self.command_queue = command_queue
+        self.process_commands()
+    
+    def process_commands(self):
+        try:
+            command = self.command_queue.get_nowait()
+            if command == "clear":
+                time.sleep(1)
+                self.clear_screen()
+        except Empty:
+            pass
+        finally:
+            self.wait(100, self.process_commands)
+
+    def wake(self, event):
+        self.entry_bar.focus_set()
+
+    # if thread closes, destroy window
+    def wait_for_destroy(self):
+        if self.gm_thread.is_alive() == True:
+            self.wait(100, self.wait_for_destroy)
+        else:
+            time.sleep(0.5)
+            self.quit()
 
     # function when user hits the enter key
     def on_enter(self, event):
@@ -240,6 +276,7 @@ class GameWindow(Window):
         self.text_log.delete(0, tk.END)
         self.text_log.config(state=tk.DISABLED)
 
+# stdout print to text widget
 class StdoutRedirector:
     def __init__(self, text_widget):
         self.text_widget = text_widget

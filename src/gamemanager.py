@@ -4,7 +4,6 @@
 
 import os
 import sys
-import time
 
 import errormanager
 import filemanager
@@ -20,14 +19,15 @@ from mode import Mode
 class GameManager():
     MAIN_MENU_SIGNITURES = ["try"]
     # initialize game environment
-    def __init__(self, input_handler):
+    def __init__(self, input_handler, command_queue):
         # initialize configuration options and variables
-        self.text_delay = 0
+        self.text_delay = 0.15
         self.modes = {}
         self.current_mode = None
         self.last_mode = None
 
         self.input_handler = input_handler
+        self.command_queue = command_queue
 
         # initialize modes
         only_mode = Mode("This is a game")
@@ -97,8 +97,7 @@ class GameManager():
             self.current_mode = new_mode
 
             textmanager.display_text("Changing modes...", self.text_delay)
-            time.sleep(1)
-            os.system('cls' if os.name == 'nt' else 'clear')
+            command_queue.put("clear") # send clear command to controlling window
 
             textmanager.display_text(new_mode.prompt, self.text_delay)
 
