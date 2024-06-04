@@ -26,6 +26,25 @@ DEFAULT_LINE_WIDTH = 15
 # Performs operations on strings
 # Handles console i/o
 
+# Ask Yes or No
+# designed to prompt user with a yes or no question
+# and only accept 'yes' or 'no' answers
+# returning true if yes and false if no
+def ask_yes_or_no(question, text_delay):
+    display_text(question, text_delay)
+
+    while(True):
+        user_input = input(f"{PLAYER_TAG}")
+
+        user_input = to_lower(user_input)
+
+        if user_input == "yes" or user_input == "y":
+            return True
+        elif user_input == "no" or user_input == "n":
+            return False
+        else:
+            textmanager.display_text("Only \"yes\" or \"no\" answers accepted.", text_delay)
+
 # Display Text
 # used to communicate information to the user in a common format
 # animated with a delay
@@ -36,32 +55,39 @@ def display_text(text, text_delay=0, line_width=DEFAULT_LINE_WIDTH):
         new_length = len(text)
         current_index = 0
 
-        # take out all line_width lines
-        while new_length - line_width > line_width:
+        # just simply use anything less than line width
+        if new_length < line_width:
+            new_line = ""
+            for i in range(new_length):
+                new_line += f"{text[i]}, "
+            text_lines.append(new_line[:-2])
+        else:
+            # take out all line_width lines
+            while new_length - line_width > line_width:
+                line = ""
+                for i in range(line_width):
+                    line += f"{text[current_index + i]}, "
+                text_lines.append(line)
+                current_index += line_width
+                new_length -= line_width
+            
+            # cut the rest in half
+            if new_length % line_width != 0:
+                new_length = new_length // 2
+                if new_length % 2 != 0:
+                    new_length += 1
+                # take that amount out
+                line = ""
+                for i in range(new_length + 1):
+                    line += f"{text[current_index + i]}, "
+                text_lines.append(line)
+                current_index += new_length + 1
+            
+            # add the rest
             line = ""
-            for i in range(line_width):
+            for i in range(len(text) - current_index):
                 line += f"{text[current_index + i]}, "
-            text_lines.append(line)
-            current_index += line_width
-            new_length -= line_width
-        
-        # cut the rest in half
-        if new_length % line_width != 0:
-            new_length = new_length // 2
-            if new_length % 2 != 0:
-                new_length += 1
-            # take that amount out
-            line = ""
-            for i in range(new_length + 1):
-                line += f"{text[current_index + i]}, "
-            text_lines.append(line)
-            current_index += new_length + 1
-        
-        # add the rest
-        line = ""
-        for i in range(len(text) - current_index):
-            line += f"{text[current_index + i]}, "
-        text_lines.append(line[:-2])
+            text_lines.append(line[:-2])
     elif isinstance(text, dict):
         # break up display by key : value
         text_lines = []
@@ -99,9 +125,12 @@ def display_text(text, text_delay=0, line_width=DEFAULT_LINE_WIDTH):
 # Get Input
 # ensures user input is of valid type: words with characters a-z seperated by spaces
 # returns None, None if invalid values are used, or verb, noun if they are valid
-def get_input():
+def get_input(input_handler=None):
     # get arg_string from user
-    arg_string = input(f"{PLAYER_TAG}")
+    if input_handler==None:
+        arg_string = input(f"{PLAYER_TAG}")
+    else:
+        arg_string = input_handler.get_input()
 
     result = ""
     # skip multiple spaces in a row
