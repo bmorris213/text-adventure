@@ -6,6 +6,7 @@ import sys
 import time
 import tkinter as tk
 from queue import Empty
+from PIL import Image, ImageTk
 
 # Display Manager
 # opens windows to display and run the game
@@ -36,6 +37,11 @@ class Window():
         # establish root top level window
         self.__root = tk.Tk()
         self.__root.title(title_text)
+
+        # customize icon
+        ico = Image.open("images/computer_icon.png")
+        photo = ImageTk.PhotoImage(ico)
+        self.__root.wm_iconphoto(True, photo)
 
         # size window to screen
         screen_width = self.__root.winfo_screenwidth()
@@ -192,7 +198,7 @@ class GameWindow(Window):
         super().__init__("Text Adventure", .7, .7, self.game_themes)
 
         # label current location at the top
-        self._add_widget(tk.Label, "title", text="New World")
+        self._add_widget(tk.Label, "title", text="Main Menu")
         self.location_title = self.content[0]
         self.location_title.pack(side=tk.TOP, fill=tk.Y, expand=True)
 
@@ -205,6 +211,7 @@ class GameWindow(Window):
             insertbackground=self.game_themes["text_color"])
         self.entry_bar = self.content[1]
         self.entry_bar.pack(side=tk.BOTTOM, fill=tk.X)
+        self._need_input = False
 
         # add the stdout textbox
         self._add_widget(tk.Text, "normal", self.text_frame,\
@@ -239,8 +246,15 @@ class GameWindow(Window):
         try:
             command = self.command_queue.get_nowait()
             if command == "clear":
-                time.sleep(1)
                 self.clear_screen()
+            elif len(command) > 13:
+                if command[:13] == "change title:":
+                    self.location_title.config(command[13:])
+                if command[:13] == "display text:":
+                    self.text_log.config(state=tk.NORMAL)
+                    self.text_log.insert(tk.END, f"{command[13:]}\n")
+                    self.text_log.see(tk.END)
+                    self.text_log.config(state=tk.DISABLED)
         except Empty:
             pass
         finally:
@@ -263,6 +277,15 @@ class GameWindow(Window):
         user_input = self.entry_bar.get()
         self.entry_bar.delete(0, tk.END)
 
+        # if _need_input, we are on hold for clear screen continue
+        if self._need_input == True:
+            self._need_input = False
+            self.text_log.config(state=tk.NORMAL)
+            self.text_log.delete(1.0, tk.END)
+            self.text_log.config(state=tk.DISABLED)
+            self.input_handler.put_input("dummy input")
+            return
+
         # print entered value for log
         self.text_log.config(state=tk.NORMAL)
         self.text_log.insert(tk.END, f" > {user_input}\n")
@@ -272,9 +295,15 @@ class GameWindow(Window):
     
     # clear display
     def clear_screen(self):
+        # enter and bold a PRESS ENTER TO CONTINUE command
+        self._need_input = True
         self.text_log.config(state=tk.NORMAL)
-        self.text_log.delete(0, tk.END)
-        self.text_log.config(state=tk.DISABLED)
+        save_index = self.text_log.index(tk.END)
+        self.text_log.insert(tk.END, "== Press Enter to Continue ==\n")
+        self.text_log.tag_configure("boldtext",font=self.text_log.cget("font")+" bold")
+        self.text_log.tag_add("boldtext", save_index, tk.END)
+        self.text_log.see(tk.END)
+        self.text_log.config(state=tk.DISABLED) # wait to clear screen until input is buffered
 
 # stdout print to text widget
 class StdoutRedirector:

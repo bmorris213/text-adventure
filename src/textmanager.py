@@ -15,12 +15,12 @@ ALPHABET = {
 TERMINAL_TAG = "  *"
 PLAYER_TAG = " > "
 
-MAX_DELAY = .3
-SLOW_TEXT = .3
-NORMAL_TEXT = .15
-QUICK_TEXT = .05
+MAX_DELAY = .2
+SLOW_TEXT = .15
+NORMAL_TEXT = .05
+QUICK_TEXT = .02
 
-DEFAULT_LINE_WIDTH = 15
+DEFAULT_LINE_WIDTH = 9
 
 # Text Manager
 # Performs operations on strings

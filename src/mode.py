@@ -7,7 +7,7 @@
 # in which the user interacts with Text Adventure
 class Mode():
     # default signitures
-    CHANGE_MODE = "change mode to new command structure with signiture: "
+    CHANGE_MODE = "change mode to new command structure with signature: "
     QUIT_SIGNITURE = "quit"
     BACK_SIGNITURE = "back"
 
@@ -117,6 +117,12 @@ class Mode():
     def add_command(self, key_string, funct, hint_text=None):
         self.__commands[key_string] = funct
         self.__hints[key_string] = hint_text
+
+    def is_command(self, verb):
+        return verb in self.__commands.keys()
+
+    def is_valid(self, noun):
+        return noun in self.__objects.keys()
     
     # Run Command
     # runs a command stored in command_dict if it can
