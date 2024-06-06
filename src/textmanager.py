@@ -2,7 +2,6 @@
 # 05-30-24
 # Brian Morris
 
-import time
 import sys
 
 ALPHABET = {
@@ -12,15 +11,13 @@ ALPHABET = {
     'P' : 'p', 'Q' : 'q', 'R' : 'r', 'S' : 's', 'T' : 't',
     'U' : 'u', 'V' : 'v', 'W' : 'w', 'X' : 'x', 'Y' : 'y', 'Z' : 'z' }
 
-TERMINAL_TAG = "  *"
+TERMINAL_TAG = "      // "
 PLAYER_TAG = " > "
-
-MAX_DELAY = .2
-SLOW_TEXT = .15
-NORMAL_TEXT = .05
-QUICK_TEXT = .02
+END_MARKER = "-------------------"
 
 DEFAULT_LINE_WIDTH = 9
+
+MAX_NAME_LENGTH = 15
 
 # Text Manager
 # Performs operations on strings
@@ -30,11 +27,15 @@ DEFAULT_LINE_WIDTH = 9
 # designed to prompt user with a yes or no question
 # and only accept 'yes' or 'no' answers
 # returning true if yes and false if no
-def ask_yes_or_no(question, text_delay):
-    display_text(question, text_delay)
+def ask_yes_or_no(question, input_handler=None):
+    display_text(question)
 
     while(True):
-        user_input = input(f"{PLAYER_TAG}")
+        user_input = None
+        if input_handler == None:
+            user_input = input(f"{PLAYER_TAG}")
+        else:
+            user_input = input_handler.get_input()
 
         user_input = to_lower(user_input)
 
@@ -43,12 +44,12 @@ def ask_yes_or_no(question, text_delay):
         elif user_input == "no" or user_input == "n":
             return False
         else:
-            textmanager.display_text("Only \"yes\" or \"no\" answers accepted.", text_delay)
+            display_text("Only \"yes\" or \"no\" answers accepted.")
 
 # Display Text
 # used to communicate information to the user in a common format
 # animated with a delay
-def display_text(text, text_delay=0, line_width=DEFAULT_LINE_WIDTH):
+def display_text(text, strip_tags=False, line_width=DEFAULT_LINE_WIDTH):
     text_lines = None
     if isinstance(text, list):
         text_lines = []
@@ -100,27 +101,15 @@ def display_text(text, text_delay=0, line_width=DEFAULT_LINE_WIDTH):
         # text is not string, list, or dict
         text_lines = [text]
 
-    # print start of new terminal line
-    if text_delay != 0:
-        print(TERMINAL_TAG, end='', file=sys.stdout)
-    
-    if text_delay > MAX_DELAY:
-        text_delay = MAX_DELAY
+    result = ""
+    if strip_tags == False:
+        for line in text_lines:
+            result += f"{TERMINAL_TAG}{line}\n"
+    else:
+        for line in text_lines:
+            result += f"{line}\n"
 
-    for line in text_lines:
-        # print instantaneously with delay == 0
-        if text_delay == 0:
-            print(f"{TERMINAL_TAG}{line}", file=sys.stdout)
-        else:
-            # delay between print operations
-            for letter in line:
-                time.sleep(text_delay / 5)
-                print(letter, end='', flush=True, file=sys.stdout)
-            # end line
-            time.sleep(text_delay * 5)
-            print('', end='\n', flush=True, file=sys.stdout)
-            if line != text_lines[len(text_lines) - 1]:
-                print(TERMINAL_TAG, end='', flush=True, file=sys.stdout)
+    print(result, file=sys.stdout, flush=True, end="")
 
 # Get Input
 # ensures user input is of valid type: words with characters a-z seperated by spaces
@@ -181,6 +170,51 @@ def get_input(input_handler=None):
         nouns = words[1:]
 
     return verb, nouns
+
+# Clean Name
+# safely limits name length and invalid character use
+# returns None if name contains invalid characters
+def clean_name(name_string):
+    result = ""
+    if name_string == None or len(name_string) == 0:
+        return None
+    
+    name_string = name_string.rstrip(' ')
+    name_string = name_string.lstrip(' ')
+
+    if name_string == None or len(name_string) == 0:
+        return None
+
+    # skip multiple spaces in a row
+    space_found = False
+
+    for character in name_string:
+        # skip all multiple spaces in a row
+        if space_found == True:
+            if character == ' ':
+                continue
+            else:
+                space_found = False
+            
+        if character >= 'a' and character <= 'z':
+            result += character
+        elif character >= 'A' and character <= 'Z':
+            result += to_lower(character)
+        elif character == ' ':
+            if result == "":
+                continue # skip all spaces at beginning
+
+            # first of potentially many spaces: files use ' '
+            result += ' '
+            space_found = True
+        else:
+            # invalid character returned
+            return None
+    
+        if len(result) >= MAX_NAME_LENGTH:
+            break
+    
+    return result
 
 # To Lower
 # Safely reduces A-Z to lower case

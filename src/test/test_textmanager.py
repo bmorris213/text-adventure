@@ -14,34 +14,16 @@ import textmanager
 class TestTextManager(unittest.TestCase):
     # ensure prompting user works as intended)
     @patch('sys.stdout', new_callable=StringIO)
-    @patch('textmanager.time.sleep', return_value=None)
-    def test_display_text(self, mock_sleep, mock_stdout):
+    def test_display_text(self, mock_stdout):
         test_string = "Testing1...\nTesting2...\nTesting3..."
-        test_values = [ 0, textmanager.QUICK_TEXT, textmanager.NORMAL_TEXT, textmanager.SLOW_TEXT, 500 ]
 
-        for i in range(len(test_values)):
-            textmanager.display_text(test_string, test_values[i])
+        textmanager.display_text(test_string)
         
         # ensure correct breaking up of prints in print with 0 delay
         expected_output = mock_stdout.getvalue()
         self.assertTrue(f"{textmanager.TERMINAL_TAG}Testing1..." in expected_output)
         self.assertTrue(f"{textmanager.TERMINAL_TAG}Testing2..." in expected_output)
         self.assertTrue(f"{textmanager.TERMINAL_TAG}Testing3..." in expected_output)
-
-        # ensure delays have been called with the correct values
-        expected_calls = []
-        for i in range(len(test_values)):
-            if i != 0:
-                adjusted_time_delay = min(test_values[i], textmanager.MAX_DELAY)
-                char_delay = adjusted_time_delay / 5
-                line_delay = adjusted_time_delay * 5
-
-                for line in test_string.split('\n'):
-                    expected_calls.extend([call(char_delay) for _ in line])
-                    expected_calls.append(call(line_delay))
-
-        self.assertEqual(mock_sleep.call_count, len(expected_calls))
-        mock_sleep.assert_has_calls(expected_calls, any_order=True)
 
         # test display works with given input of list
         test_string = []
