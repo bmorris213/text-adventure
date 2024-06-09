@@ -15,9 +15,7 @@ CACHE = "__pycache__"
 
 # initialize file names
 MAIN_SHELL = "main.sh"
-MAIN_BAT = "main.bat"
-MAIN_SPEC = "main.spec"
-FILE_DEPENDENCIES = [ MAIN_SHELL, MAIN_BAT, MAIN_SPEC ]
+FILE_DEPENDENCIES = [ MAIN_SHELL ]
 CURRENT_CONFIG = "current.config"
 ERROR_LOG = "error.log"
 
@@ -40,7 +38,6 @@ def validate_files():
         "worldmanager.py", "displaymanager.py" ]
     for file in project_files:
         files_to_validate.append(os.path.join(PROJECT_ROOT, SOURCE_PATH, file))
-    files_to_validate.append(os.path.join(PROJECT_ROOT, "dist", "main"))
 
     # validate files exist
     for file in files_to_validate:
