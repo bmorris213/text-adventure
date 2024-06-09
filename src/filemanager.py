@@ -15,6 +15,9 @@ CACHE = "__pycache__"
 
 # initialize file names
 MAIN_SHELL = "main.sh"
+MAIN_BAT = "main.bat"
+MAIN_SPEC = "main.spec"
+FILE_DEPENDENCIES = [ MAIN_SHELL, MAIN_BAT, MAIN_SPEC ]
 CURRENT_CONFIG = "current.config"
 ERROR_LOG = "error.log"
 
@@ -28,7 +31,8 @@ ERROR_LOG = "error.log"
 def validate_files():
     # add file dependencies
     files_to_validate = []
-    files_to_validate.append(os.path.join(PROJECT_ROOT, MAIN_SHELL))
+    for file in FILE_DEPENDENCIES:
+        files_to_validate.append(os.path.join(PROJECT_ROOT, file))
 
     # add project source files
     project_files = [ "main.py", "mode.py", "gamemanager.py",
@@ -36,6 +40,7 @@ def validate_files():
         "worldmanager.py", "displaymanager.py" ]
     for file in project_files:
         files_to_validate.append(os.path.join(PROJECT_ROOT, SOURCE_PATH, file))
+    files_to_validate.append(os.path.join(PROJECT_ROOT, "dist", "main"))
 
     # validate files exist
     for file in files_to_validate:
@@ -53,7 +58,7 @@ def add_log(error_report):
     found_path = locate_file(ERROR_LOG)
 
     if found_path == None:
-        found_path = os.path.join(PROJECT_ROOT, SOURCE_PATH, ERROR_LOG)
+        found_path = os.path.join(PROJECT_ROOT, DATA_PATH, ERROR_LOG)
         # create empty error log file
         with open(found_path, 'wb') as f:
             pass
@@ -196,7 +201,7 @@ def locate_file(file_name):
         if SOURCE_PATH in dirs:
             dirs.remove(SOURCE_PATH)
         
-        if file_name in files and file_name != MAIN_SHELL:
+        if file_name in files and file_name not in FILE_DEPENDENCIES:
             file_path = os.path.join(root, file_name)
             # Ensure the match is a file
             if os.path.isfile(file_path):  

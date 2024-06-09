@@ -23,8 +23,8 @@ class GameManager():
             # options menu
             self.sound_volume = 1
             self.music_volume = 1
-            self.master_volume = 0.75
-            self.text_delay = 0.01
+            self.master_volume = 0.7
+            self.text_delay = GameManager.NORMAL_TEXT
             self.display_welcome = True
             
             # save data
@@ -139,6 +139,7 @@ class GameManager():
             # look for existing name
             if new_name in self.config.saves.keys():
                 textmanager.display_text(f"There is already a save file with the name \"{new_name}\".")
+                continue
 
             # check user is sure
             has_name = textmanager.ask_yes_or_no(f"Should I call you \"{new_name}\"?", self.input_handler)
@@ -169,18 +170,18 @@ class GameManager():
         if targets != None and len(targets) != 0 and targets[0] != "game":
             return "The \"continue\" command only makes sense here with target \"game\"."
         # there is nothing to continue if there are no saves
-        if len(self.config.saves) == 0 or most_recent_save == None:
+        if len(self.config.saves) == 0 or self.config.most_recent_save == None:
             return "There is no progress to continue. Try starting a new adventure!"
 
         # for new games we rely on the constructor to initialize the new world
         self.world_state = WorldManager()
 
         # name world
-        self.world_state.name(self.most_recent_save)
+        self.world_state.name(self.config.most_recent_save)
 
         # remove spaces from file's name
         clean_name = ""
-        for char in t_file:
+        for char in self.config.most_recent_save:
             if char == " ":
                 clean_name += "-"
             else:
@@ -200,7 +201,7 @@ class GameManager():
         if len(self.config.saves) == 0:
             return "There are no saves to load."
         # pass to load submenu
-        return f"{Mode.CHANGE_MODE}load game"
+        return f"{Mode.CHANGE_MODE}{self.LOAD_MENU_MODE}"
 
     def _main_option_funct(self, objects, targets=None):
         if targets != None:
@@ -255,7 +256,7 @@ class GameManager():
         self.world_state.name(targets[0])
 
         # switch to gameplay mode from world manager
-        return f"{textmanager.CHANGE_MODE}{WorldManager.START_ADVENTURE}"
+        return f"{Mode.CHANGE_MODE}{self.START_ADVENTURE}"
 
     def _load_delete_funct(self, objects, targets=None):
         # ensure targets is a list type
@@ -481,6 +482,22 @@ class GameManager():
         # retrieve configuration options
         self.config = filemanager.read_data(filemanager.CURRENT_CONFIG, self.Configuration)
 
+        # ensure save file validity
+        valid_saves = {}
+        for file, data in self.config.saves.items():
+            clean_name = ""
+            for char in file:
+                if char == " ":
+                    clean_name += "-"
+                else:
+                    clean_name += char
+            if filemanager.locate_file(clean_name) != None:
+                # save is still valid on startup
+                valid_saves[file] = data
+        self.config.saves = {}
+        for file, data in valid_saves.items():
+            self.config.saves[file] = data
+
         # initialize stdin and window command variables
         self.input_handler = input_handler
         self.command_queue = command_queue
@@ -681,10 +698,10 @@ class GameManager():
                 filemanager.add_save(clean_name, world_data)
             
             # now we must store our updated file summary
-            self.saves[self.world_state.user_name] = self.world_state.get_summary()
+            self.config.saves[self.world_state.user_name] = self.world_state.get_summary()
 
-            # and update this object as the one to continue
-            self.config.most_recent_save = self.world_state.user_name
+            # and update the load menu mode
+            self.modes[self.LOAD_MENU_MODE] = self._init_load_menu()
 
             # and finally overwrite configuration with new updates
             filemanager.write_data(filemanager.CURRENT_CONFIG, self.config)
@@ -730,6 +747,17 @@ class GameManager():
                     self.game_running = False
                     return True # return to desktop
                 else:
+                    # set most_recent_save as current one, if the save file exists
+                    if self.world_state.user_name in self.config.saves.keys():
+                        clean_name = ""
+                        for char in self.world_state.user_name:
+                            if char == " ":
+                                clean_name += "-"
+                            else:
+                                clean_name += char
+                        if filemanager.locate_file(clean_name) != None:
+                            self.config.most_recent_save = self.world_state.user_name
+                            filemanager.write_data(self.config, self.Configuration)
                     # return to main menu
                     return self.handle_change_mode(f"{Mode.CHANGE_MODE}{self.MAIN_MENU_MODE}") # recur with MAIN MENU MODE
         elif mode_signature == self.COMPLETE_BREAK:
@@ -783,10 +811,6 @@ class GameManager():
             textmanager.display_text(f"There is no such page \"{mode_signature}\".")
             return True
         
-        # if main menu is new mode change title, in case we quit a game
-        if new_mode == self.MAIN_MENU_MODE:
-            self.command_queue.put(f"{self.CHANGE_TITLE}{self.MAIN_MENU_TITLE}")
-        
         # change to new mode
         self.last_mode = self.current_mode
         self.last_signature = self.current_signature
@@ -802,6 +826,10 @@ class GameManager():
             self.last_signature = None
             # grab the location we are supposed to be in to change title
             self.command_queue.put(f"{self.CHANGE_TITLE}{self.world_state.get_location_title()}")
+        
+        # if main menu is new mode change title, in case we quit a game
+        if new_signature == self.MAIN_MENU_MODE:
+            self.command_queue.put(f"{self.CHANGE_TITLE}{self.MAIN_MENU_TITLE}")
             
         textmanager.display_text(f"{self.current_mode.prompt}\n{textmanager.END_MARKER}", True)
 

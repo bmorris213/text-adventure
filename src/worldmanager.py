@@ -28,14 +28,14 @@ class WorldManager():
             self.location = "A New Journey"
     
     def _save_funct(self, objects, targets=None):
-        return f"{Mode.GAME_COMMAND}{SAVE_SIGNATURE}"
+        return f"{self.GAME_COMMAND}{self.SAVE_SIGNATURE}"
 
     def _option_funct(self, objects, targets=None):
-        return f"{Mode.GAME_COMMAND}{OPTION_SIGNATURE}"
+        return f"{self.GAME_COMMAND}{self.OPTION_SIGNATURE}"
     
     def _do_stuff_funct(self, objects, targets=None):
         if targets:
-            if Mode.ALL_OBJECTS in self.targets:
+            if Mode.ALL_OBJECTS in targets:
                 return f"You go and \"use\" absolutely everything in your sight. Good job?"
 
             resulting_action = ""
@@ -56,13 +56,17 @@ class WorldManager():
             if len(targets) > 1 or Mode.ALL_OBJECTS in targets:
                 return f"You can only open 1 thing at a time!"
 
-            if target[0] not in objects.keys():
-                return f"There is no \"{target[0]}\" here to open..."
+            if targets[0] not in objects.keys():
+                return f"There is no \"{targets[0]}\" here to open..."
 
-            if target[0] not in self.world.containers:
-                return f"You can't open \"{target[0]}\", but nice try..."
+            if targets[0] not in self.world.containers:
+                return f"You can't open \"{targets[0]}\", but nice try..."
 
-            return f"Inside of \"{target[0]}\" there is..... {self.world.box_secret}"
+            self.world.containers = []
+            self.modes["only"].delete_object("box")
+            self.modes["only"].add_object("box", "An empty box", "What was inside is no longer there")
+
+            return f"Inside of \"{targets[0]}\" there is..... {self.world.box_secret}"
         else:
             return "You need to specify what you're trying to open..."
     
@@ -78,15 +82,18 @@ class WorldManager():
             result = ""
             for target in targets:
                 if target not in self.world.enemies:
-                    result += f"You hit \"{target}\" with all your might...\n"
+                    result += f"You hit \"{target}\" with all your might... It does nothing...\n"
                 else:
                     self.world.enemy_hp -= 1
                     if self.world.enemy_hp < 0:
                         result += f"\"{target}\" is already dead... Your cruelty knows no bounds.\n"
                     elif self.world.enemy_hp == 0:
                         result += f"\"{target}\" succumbs to your incredible violence. Congradulations, you win!\nYou can \"quit\" now, proud of your accomplishments.\n"
+                        self.modes["only"].delete_object("troll")
+                        self.modes["only"].add_object("corpse", "A dead troll.", "Proof of your victory over your enemy.")
+                        self.world.enemies = ["corpse"]
                     else:
-                        result += f"\"{target}\" cries out in pain...\n\"{self.enemy_reaction}\", they say.\n"
+                        result += f"\"{target}\" cries out in pain...\n\"{self.world.enemy_reaction}\", they say.\n"
 
             return f"{result}With combat accomplished, what will you do next?"
         else:
@@ -105,7 +112,7 @@ class WorldManager():
             
             if targets[0] == "cow":
                 self.world.cow_push_count += 1
-                if self.world.cow_push_count >= 5:
+                if self.world.cow_push_count > 5:
                     return f"You've already rolled over the cow.\nWhat more are you trying to accomplish???"
                 elif self.world.cow_push_count == 5:
                     return f"You push the cow again and again until eventually... it rolls over! Achievement unlocked!"

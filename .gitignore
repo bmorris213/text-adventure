@@ -1,4 +1,5 @@
 __pycache__
 error.log
 current.config
-saves
+data/saves/*
+!data/saves/.gitkeep
