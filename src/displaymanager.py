@@ -1,5 +1,5 @@
 # Text Adventure
-# 06-02-2024
+# 06-10-2024
 # Brian Morris
 
 import sys
@@ -10,8 +10,6 @@ from PIL import Image, ImageTk
 
 # Display Manager
 # opens windows to display and run the game
-
-TEXT_DELAY = 0.01
 
 # default window themes
 DEFAULT_THEMES = {
@@ -156,6 +154,7 @@ class Window():
 
         # set up a frame of buttons
         button_frame = tk.Frame(confirm)
+        button_frame.config(background=self._themes["background"])
         button_frame.pack(expand=True, fill=tk.X, side=tk.BOTTOM,\
             padx=self._border_size, pady=self._border_size)
 
@@ -176,11 +175,16 @@ class Window():
         no_b.config(foreground=self._themes["text_color"])
         no_b.config(font=(self._themes["font_type"], self._themes["normal_size"]))
         no_b.pack(expand=True, side=tk.RIGHT, padx=self._border_size, pady=self._border_size)
+        no_b.focus_set()
 
         # establish window
         confirm.transient(self.__root)
         confirm.grab_set()
         self.__root.wait_window(confirm)
+    
+    # refresh frame
+    def refresh(self):
+        self.__root.update()
 
 # Game Window
 # the type of window the game will be run in
@@ -228,6 +232,7 @@ class GameWindow(Window):
             wrap=tk.WORD, state=tk.DISABLED)
         self.text_log = self.content[2]
         self.text_log.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.text_delay = 0.01
 
         # add scrollbar for the textbox
         self._add_widget(tk.Scrollbar, "normal", self.text_frame,\
@@ -243,6 +248,11 @@ class GameWindow(Window):
 
         self._need_quit = False
 
+        # default command keywords
+        self.clear_command = "clear"
+        self.change_title = "change title:"
+        self.change_speed = "change speed:"
+
         # wait for call to destroy
         self.gm_thread = thread
         self.wait_for_destroy()
@@ -250,6 +260,17 @@ class GameWindow(Window):
         # wait for command to change behavior
         self.command_queue = command_queue
         self.process_commands()
+
+
+    # setup animation speed
+    def set_speed(self, animation_speed):
+        self.text_delay = animation_speed
+    
+    # setup command queue commands
+    def set_commands(self, clear_command, change_title, change_speed):
+        self.clear_command = clear_command
+        self.change_title = change_title
+        self.change_speed = change_speed
 
     # override run
     def run(self):
@@ -274,16 +295,20 @@ class GameWindow(Window):
         self._need_quit = True
     
     def process_commands(self):
-        change_title_command = "change title:"
         try:
             command = self.command_queue.get_nowait()
             # exact matches
-            if command == "clear":
+            if command == self.clear_command:
                 self.clear_screen()
+
             # starting-word matches
-            elif len(command) > len(change_title_command):
-                if command[:len(change_title_command)] == change_title_command:
-                    self.location_title.config(text=command[len(change_title_command):])
+            if len(command) > len(self.change_title):
+                if command[:len(self.change_title)] == self.change_title:
+                    self.location_title.config(text=command[len(self.change_title):])
+            
+            if len(command) > len(self.change_speed):
+                if command[:len(self.change_speed)] == self.change_speed:
+                    self.text_delay = float(command[len(self.change_speed):])
         except Empty:
             pass
         finally:
@@ -378,7 +403,7 @@ class GameWindow(Window):
             self._is_animating = False
             return
         
-        time.sleep(TEXT_DELAY)
+        time.sleep(self.text_delay)
         self.animate(text[1:])
     
     def color_text(self, text_widget):

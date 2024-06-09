@@ -1,15 +1,17 @@
 # Text Adventure
-# 05-30-24
+# 06-10-2024
 # Brian Morris
 
 # Mode
 # Encapsulates a mode of operation
 # in which the user interacts with Text Adventure
 class Mode():
-    # default signitures
+    # default signatures
     CHANGE_MODE = "change mode to new command structure with signature: "
-    QUIT_SIGNITURE = "quit"
-    BACK_SIGNITURE = "back"
+    QUIT_SIGNATURE = "quit"
+    BACK_SIGNATURE = "back"
+
+    ALL_OBJECTS = "all"
 
     # built in commands
     HELP_COMMAND = "help"
@@ -20,32 +22,36 @@ class Mode():
 
     # all modes have HELP, LOOK, BACK, and QUIT commands
     def _back_funct(self, targets=None):
-        return f"{self.CHANGE_MODE}{self.BACK_SIGNITURE}"
+        return f"{self.CHANGE_MODE}{self.BACK_SIGNATURE}"
     
     def _quit_funct(self, targets=None):
-        return f"{self.CHANGE_MODE}{self.QUIT_SIGNITURE}"
+        return f"{self.CHANGE_MODE}{self.QUIT_SIGNATURE}"
     
     def _look_funct(self, targets=None):
         if targets:
+            if targets[0] == self.ALL_OBJECTS and len(self.__objects.keys()) == 1:
+                return "There is nothing here..."
+
             results = {}
             # find references in objects
             for key_string in self.__objects.keys():
-                if key_string in targets:
+                if (key_string in targets or targets[0] == self.ALL_OBJECTS) and key_string != self.ALL_OBJECTS:
                     results[key_string] = self.__objects[key_string]
             
             # any non-matching targets should be None
             for target in targets:
-                if target not in results.keys():
+                if target not in results.keys() and targets[0] != self.ALL_OBJECTS:
                     results[target] = None
             
             return results
         else:
             # if no targets were specified, we should return a list of all objects
             results = []
-            if len(self.__objects.keys()) == 0:
+            if len(self.__objects.keys()) == 1: # there will always be a dummy "all" object
                 return "There is nothing here..."
             for key_string in self.__objects.keys():
-                results.append(key_string)
+                if key_string != self.ALL_OBJECTS:
+                    results.append(key_string)
             return results
 
     def _help_funct(self, targets=None):
@@ -53,12 +59,12 @@ class Mode():
             results = {}
             # find references in objects and commands
             for key_string in self.__objects.keys():
-                if key_string in targets:
+                if (key_string in targets or targets[0] == self.ALL_OBJECTS) and key_string != self.ALL_OBJECTS:
                     hint_text = self.__hints[key_string]
                     if hint_text != None:
                         results[key_string] = hint_text
             for key_string in self.__commands.keys():
-                if key_string in targets:
+                if (key_string in targets or targets[0] == self.ALL_OBJECTS) and key_string != self.ALL_OBJECTS:
                     hint_text = self.__hints[key_string]
                     if hint_text != None:
                         results[key_string] = hint_text
@@ -66,7 +72,7 @@ class Mode():
             # any non-matching targets should be None
             # as well as any objects which have no hint text
             for target in targets:
-                if target not in results.keys():
+                if target not in results.keys() and targets[0] != self.ALL_OBJECTS:
                     results[target] = None
             
             return results
@@ -92,6 +98,7 @@ class Mode():
             "Return to previous menu, or close menu.")
         self.add_command(self.QUIT_COMMAND, self._quit_funct,
             "Quit to main menu or desktop.")
+        self.add_object(self.ALL_OBJECTS, "Every target that you can possibly command.", "Easy shortcut for targetting everything.")
     
     # Add Object
     # adds a new valid object target

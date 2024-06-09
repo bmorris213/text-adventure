@@ -1,5 +1,5 @@
 # Text Adventure
-# 05-30-24
+# 06-10-2024
 # Brian Morris
 
 import threading
@@ -27,6 +27,20 @@ def main():
 
     # start the game window with the new stdin, the subprocess thread, and the command queue
     app = GameWindow(new_stdin, gm_thread, command_queue)
+
+    # grab animation speed from game_manager
+    animation_speed = game_logic.config.text_delay
+
+    # grab the command_queue command words
+    clear_command = game_logic.CLEAR_COMMAND
+    change_title = game_logic.CHANGE_TITLE
+    change_speed = game_logic.CHANGE_SPEED
+
+    # set animation speed
+    app.set_speed(animation_speed)
+
+    # set command words
+    app.set_commands(clear_command, change_title, change_speed)
 
     # run game window with game manager
     app.run()

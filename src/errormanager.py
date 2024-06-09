@@ -1,5 +1,5 @@
 # Text Adventure
-# 05-30-2024
+# 06-10-2024
 # Brian Morris
 
 import sys
@@ -55,7 +55,7 @@ def close_program():
 # view all current errors with stderr
 def inspect_errors():
     # get the log from file
-    logs = filemanager.read_data(filemanager.ERROR_LOG)
+    logs = filemanager.read_data(filemanager.ERROR_LOG, list)
 
     # if there were no logs, or file is missing, return
     if logs == None:

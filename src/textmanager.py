@@ -1,5 +1,5 @@
 # Text Adventure
-# 05-30-24
+# 06-10-2024
 # Brian Morris
 
 import sys
@@ -26,9 +26,10 @@ MAX_NAME_LENGTH = 15
 # Ask Yes or No
 # designed to prompt user with a yes or no question
 # and only accept 'yes' or 'no' answers
-# returning true if yes and false if no
+# returning None if 'yes', 'no' if 'no', and 'quit' if 'quit' or 'back' or 'stop' are used
 def ask_yes_or_no(question, input_handler=None):
     display_text(question)
+    display_text("(Type \"quit\", \"back\", or \"stop\" to stop)")
 
     while(True):
         user_input = None
@@ -40,9 +41,11 @@ def ask_yes_or_no(question, input_handler=None):
         user_input = to_lower(user_input)
 
         if user_input == "yes" or user_input == "y":
-            return True
+            return None
         elif user_input == "no" or user_input == "n":
-            return False
+            return "no"
+        elif user_input == "back" or user_input == "quit" or user_input == "stop":
+            return "quit"
         else:
             display_text("Only \"yes\" or \"no\" answers accepted.")
 
@@ -114,7 +117,7 @@ def display_text(text, strip_tags=False, line_width=DEFAULT_LINE_WIDTH):
 # Get Input
 # ensures user input is of valid type: words with characters a-z seperated by spaces
 # returns None, None if invalid values are used, or verb, noun if they are valid
-def get_input(input_handler=None):
+def get_input(input_handler=None, validate_chars=True):
     # get arg_string from user
     if input_handler==None:
         arg_string = input(f"{PLAYER_TAG}")
@@ -132,7 +135,13 @@ def get_input(input_handler=None):
                 continue
             else:
                 space_found = False
-            
+        
+        if validate_chars == False:
+            result += character
+            if character == ' ':
+                space_found = True
+            continue
+
         if character >= 'a' and character <= 'z':
             # a-z are valid input
             result += character
